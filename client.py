@@ -16,11 +16,11 @@ from simpleOSC import *
 def updateQuality(i, q):
     if not guifeature: return
     coords = (
-        (236,104), (179,164), (275,158),
-        (215,202), (157,254), (215,373),
-        (270,431), (370,431), (425,373),
-        (483,254), (425,202), (365,158),
-        (461,164), (404,104) )
+        (136,104), (79,164), (175,158),
+        (115,202), (57,254), (115,373),
+        (170,431), (270,431), (325,373),
+        (383,254), (325,202), (265,158),
+        (361,164), (304,104) )
     if q == 0:
         color = (255,255,255)
     elif q <= 4:
@@ -37,37 +37,45 @@ def updateQuality(i, q):
 # that leaves four sliding controls: freq, nharm, amp, detune.
 # i'll map each to a quadrant of the brain.
 def processPacket(packet):
-    pan = (((packet.gyroX)/(160.0)) - 5) % 1
+    if guifeature:
+        surface.blit(background, (0,0))
+    pan = (((packet.gyroY)/(1600.0)) - .5) % 1
     nharm = (((packet.sensors['AF3']['value'] + 
         packet.sensors['AF4']['value']) / 
-        (2*900.0)) - 5) % 1
+        (2*9000.0)) - .5) % 1
     freq = (((packet.sensors['F3']['value'] + 
         packet.sensors['F4']['value'] + 
         packet.sensors['F7']['value'] + 
         packet.sensors['F8']['value']) / 
-        (4*900.0)) - 5) % 1
+        (4*9000.0)) - .5) % 1
     amp = (((packet.sensors['FC5']['value'] + 
         packet.sensors['FC6']['value'] + 
         packet.sensors['T7']['value'] + 
         packet.sensors['T8']['value']) / 
-        (4*900.0)) - 5) % 1
+        (4*9000.0)) - .5) % 1
     detune = (((packet.sensors['P7']['value'] + 
         packet.sensors['P8']['value'] + 
         packet.sensors['O1']['value'] + 
         packet.sensors['O2']['value']) / 
-        (4*900.0)) - 5) % 1
+        (4*9000.0)) - .5) % 1
     sendOSCMsg("/inputs/pan", [pan])
     sendOSCMsg("/inputs/nharm", [nharm])
     sendOSCMsg("/inputs/freq", [freq])
-    sendOSCMsg("/inputs/amp", [amp])
+    sendOSCMsg("/inputs/amp", [2 * amp])
     sendOSCMsg("/inputs/detune", [detune])
     print "/inputs/pan [%f]\n/inputs/nharm [%f]\n/inputs/freq [%f]" % (pan, nharm, freq)
     print "/inputs/amp [%f]\n/inputs/detune [%f]" % (amp, detune)
+    if guifeature:
+        pygame.draw.rect(surface, (0,0,255), (462,52,pan*146,21))
+        pygame.draw.rect(surface, (0,0,255), (462,138,freq*146,21))
+        pygame.draw.rect(surface, (0,0,255), (462,224,amp*146,21))
+        pygame.draw.rect(surface, (0,0,255), (462,310,nharm*146,21))
+        pygame.draw.rect(surface, (0,0,255), (462,396,detune*146,21))
     
 
 
 guifeature = True
-parser = argparse.ArgumentParser(description="Create and OSC bridge between Emotiv Epoc USB Receiver and SuperCollider.")
+parser = argparse.ArgumentParser(description="Create an OSC bridge between Emotiv Epoc USB Receiver and SuperCollider.")
 parser.add_argument("--ip", default="127.0.0.1", help="The server's IP.")
 parser.add_argument("--port", type=int, default=57120, help="The server's listening port.")
 parser.add_argument("--nogui", type=bool, default=False, help="Disable the client's graphical callibration tool.")
