@@ -31,6 +31,40 @@ def updateQuality(i, q):
         color = (0,255,0)
     pygame.draw.circle(surface, color, coords[i], 15)
 
+# six controls: gate, freq, nharm, amp, pan, detune
+# pan will be controlled by average acceleration (in either x or y)
+# gate is a sort of toggle - might turn it on once the connection is decent
+# that leaves four sliding controls: freq, nharm, amp, detune.
+# i'll map each to a quadrant of the brain.
+def processPacket(packet):
+    pan = ((packet.gyroX)/(160.0)) - 5
+    nharm = ((packet.sensors['AF3']['value'] + 
+        packet.sensors['AF4']['value']) / 
+        (2*900.0)) - 5
+    freq = ((packet.sensors['F3']['value'] + 
+        packet.sensors['F4']['value'] + 
+        packet.sensors['F7']['value'] + 
+        packet.sensors['F8']['value']) / 
+        (4*900.0)) - 5
+    amp = ((packet.sensors['FC5']['value'] + 
+        packet.sensors['FC6']['value'] + 
+        packet.sensors['T7']['value'] + 
+        packet.sensors['T8']['value']) / 
+        (4*900.0)) - 5
+    detune = ((packet.sensors['P7']['value'] + 
+        packet.sensors['P8']['value'] + 
+        packet.sensors['O1']['value'] + 
+        packet.sensors['O2']['value']) / 
+        (4*900.0)) - 5
+    sendOSCMsg("/inputs/pan", [pan])
+    sendOSCMsg("/inputs/nharm", [nharm])
+    sendOSCMsg("/inputs/freq", [freq])
+    sendOSCMsg("/inputs/amp", [amp])
+    sendOSCMsg("/inputs/detune", [detune])
+    print "/inputs/pan [%f]\n/inputs/nharm [%f]\n/inputs/freq [%f]" % (pan, nharm, freq)
+    print "/inputs/amp [%f]\n/inputs/detune [%f]" % (amp, detune)
+    
+
 
 guifeature = True
 parser = argparse.ArgumentParser(description="Create and OSC bridge between Emotiv Epoc USB Receiver and SuperCollider.")
@@ -76,24 +110,9 @@ try:
 
         # get sensor values from headset
         packet = emotiv.dequeue()
-        displaychanged = False
+        processPacket(packet)
         for i in range(len(sensornames)):
-            try:
-                # read the data and send it as OSC message
-                value = packet.sensors[sensornames[i]]['value']
-                quality = packet.sensors[sensornames[i]]['quality']
-                updateQuality(i, quality)
-                sendOSCMsg("/sensor/" + sensornames[i], [value, quality])
-                #print "CLIENT: /sensor/%s %d %d" % (sensornames[i], value, quality)
-            except Exception, e:
-                print e
-        try:
-            sendOSCMsg("/gyro/x", [packet.gyroX])
-            #print "CLIENT: /gyro/x %d" % (packet.gyroX)
-            sendOSCMsg("/gyro/y", [packet.gyroY])
-            #print "CLIENT: /gyro/y %d" % (packet.gyroY)
-        except Exception, e:
-            print e
+            updateQuality(i, packet.sensors[sensornames[i]]['quality'])
         if guifeature:
             pygame.display.flip()
         gevent.sleep(0)
