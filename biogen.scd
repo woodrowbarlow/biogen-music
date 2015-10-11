@@ -52,8 +52,9 @@ SynthDef.new(\tone, {
 	sig = Balance2.ar(sig[0], sig[1], pan);
 	sig = sig * env * amp;
 	Out.ar(out, sig)
-}).add
-x = Synth.new(\tone, [\gate, 1])
+}).add;
+
+x = Synth.new(\tone, [\gate, 1]);
 )
 
 x.set(\freq, 50)

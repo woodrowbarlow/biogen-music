@@ -37,25 +37,25 @@ def updateQuality(i, q):
 # that leaves four sliding controls: freq, nharm, amp, detune.
 # i'll map each to a quadrant of the brain.
 def processPacket(packet):
-    pan = ((packet.gyroX)/(160.0)) - 5
-    nharm = ((packet.sensors['AF3']['value'] + 
+    pan = (((packet.gyroX)/(160.0)) - 5) % 1
+    nharm = (((packet.sensors['AF3']['value'] + 
         packet.sensors['AF4']['value']) / 
-        (2*900.0)) - 5
-    freq = ((packet.sensors['F3']['value'] + 
+        (2*900.0)) - 5) % 1
+    freq = (((packet.sensors['F3']['value'] + 
         packet.sensors['F4']['value'] + 
         packet.sensors['F7']['value'] + 
         packet.sensors['F8']['value']) / 
-        (4*900.0)) - 5
-    amp = ((packet.sensors['FC5']['value'] + 
+        (4*900.0)) - 5) % 1
+    amp = (((packet.sensors['FC5']['value'] + 
         packet.sensors['FC6']['value'] + 
         packet.sensors['T7']['value'] + 
         packet.sensors['T8']['value']) / 
-        (4*900.0)) - 5
-    detune = ((packet.sensors['P7']['value'] + 
+        (4*900.0)) - 5) % 1
+    detune = (((packet.sensors['P7']['value'] + 
         packet.sensors['P8']['value'] + 
         packet.sensors['O1']['value'] + 
         packet.sensors['O2']['value']) / 
-        (4*900.0)) - 5
+        (4*900.0)) - 5) % 1
     sendOSCMsg("/inputs/pan", [pan])
     sendOSCMsg("/inputs/nharm", [nharm])
     sendOSCMsg("/inputs/freq", [freq])
