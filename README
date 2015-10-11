@@ -1,0 +1,5 @@
+# Biologically Generated Music
+
+HackNC 2015 weekend project, by Woodrow Barlow, Kevin Keller, and Ryan Miller.
+Interfaces with an Emotiv Epoc EEG to create procedurally generated music based
+on input from your brainwaves.
